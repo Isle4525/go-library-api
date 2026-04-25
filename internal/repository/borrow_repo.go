@@ -51,6 +51,9 @@ func (r *BorrowRepository) GetBorrowRecordByID(id int) (*models.BorrowRecord, er
 	var record models.BorrowRecord
 	err := row.Scan(&record.ID, &record.BookID, &record.UserID, &record.BorrowDate, &record.ReturnDate, &record.IsReturned)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 

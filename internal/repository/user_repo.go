@@ -59,6 +59,9 @@ func (r *UserRepository) GetUserByID(id int) (*models.User, error) {
 	err := row.Scan(&user.ID, &user.Username, &user.Email)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -69,7 +72,15 @@ func (r *UserRepository) GetUserByID(id int) (*models.User, error) {
 func (r *UserRepository) UpdateUser(user *models.User) error {
 	query := "UPDATE users SET username = $1, email = $2 WHERE id = $3"
 
-	_, err := r.db.Exec(query, user.Username, user.Email, user.ID)
+	result, err := r.db.Exec(query, user.Username, user.Email, user.ID)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return err
+	}
 
 	return err
 
@@ -78,7 +89,15 @@ func (r *UserRepository) UpdateUser(user *models.User) error {
 func (r *UserRepository) DeleteUser(id int) error {
 	query := "DELETE FROM users WHERE id = $1"
 
-	_, err := r.db.Exec(query, id)
+	result, err := r.db.Exec(query, id)
+
+	resultAffeted, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if resultAffeted == 0 {
+		return err
+	}
 
 	return err
 

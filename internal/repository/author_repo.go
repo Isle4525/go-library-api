@@ -3,6 +3,7 @@ package repository
 import (
 	"LibaryBookControl/internal/models"
 	"database/sql"
+	"errors"
 )
 
 type AuthorRepository struct {
@@ -57,6 +58,9 @@ func (r *AuthorRepository) GetAuthorByID(id int) (*models.Author, error) {
 	err := row.Scan(&author.ID, &author.Name, &author.Bio)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -67,7 +71,15 @@ func (r *AuthorRepository) GetAuthorByID(id int) (*models.Author, error) {
 func (r *AuthorRepository) UpdateAuthor(author *models.Author) error {
 	query := "UPDATE authors SET name = $1, bio = $2 WHERE id = $3"
 
-	_, err := r.db.Exec(query, author.Name, author.Bio, author.ID)
+	result, err := r.db.Exec(query, author.Name, author.Bio, author.ID)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("Author not found")
+	}
 
 	return err
 
@@ -76,7 +88,15 @@ func (r *AuthorRepository) UpdateAuthor(author *models.Author) error {
 func (r *AuthorRepository) DeleteAuthor(id int) error {
 	query := "DELETE FROM authors WHERE id = $1"
 
-	_, err := r.db.Exec(query, id)
+	result, err := r.db.Exec(query, id)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("Author not found")
+	}
 
 	return err
 

@@ -3,6 +3,7 @@ package repository
 import (
 	"LibaryBookControl/internal/models"
 	"database/sql"
+	"errors"
 )
 
 type BookRepository struct {
@@ -61,6 +62,9 @@ func (r *BookRepository) GetBookByID(id int) (*models.Book, error) {
 	err := row.Scan(&book.ID, &book.Title, &book.Year, &book.AuthorID)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -72,7 +76,15 @@ func (r *BookRepository) UpdateBook(book *models.Book) error {
 
 	query := "UPDATE books SET title = $1, year = $2, author_id = $3 WHERE id = $4"
 
-	_, err := r.db.Exec(query, book.Title, book.Year, book.AuthorID, book.ID)
+	result, err := r.db.Exec(query, book.Title, book.Year, book.AuthorID, book.ID)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("Book not found")
+	}
 
 	return err
 
@@ -82,7 +94,16 @@ func (r *BookRepository) DeleteBook(book *models.Book) error {
 
 	query := "DELETE FROM books WHERE id = $1"
 
-	_, err := r.db.Exec(query, book.ID)
+	result, err := r.db.Exec(query, book.ID)
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("Book not found")
+	}
 
 	return err
 
