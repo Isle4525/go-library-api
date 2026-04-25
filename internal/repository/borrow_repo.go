@@ -60,3 +60,43 @@ func (r *BorrowRepository) GetBorrowRecordByID(id int) (*models.BorrowRecord, er
 	return &record, nil
 
 }
+
+func (r *BorrowRepository) UpdateBorrowRecord(record *models.BorrowRecord) error {
+	query := "UPDATE borrow_records SET book_id = $1, user_id = $2, borrow_date = $3, return_date = $4, is_returned = $5 WHERE id = $6"
+
+	result, err := r.db.Exec(query, record.BookID, record.UserID, record.BorrowDate, record.ReturnDate, record.IsReturned, record.ID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return err
+	}
+
+	return err
+}
+
+func (r *BorrowRepository) DeleteBorrowRecord(id int) error {
+	query := "DELETE FROM borrow_records WHERE id = $1"
+
+	result, err := r.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return err
+	}
+
+	return err
+
+}

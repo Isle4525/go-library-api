@@ -28,19 +28,51 @@ func (s *AuthorService) GetAuthorByID(id int) (*models.Author, error) {
 		return nil, errors.New("Uncorrect ID")
 	}
 
-	book, err := s.repo.GetAuthorByID(id)
+	author, err := s.repo.GetAuthorByID(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return book, nil
+	if author == nil {
+		return nil, errors.New("Author not found")
+	}
+
+	return author, nil
 }
 
 func (s *AuthorService) UpdateAuthor(author *models.Author) error {
+
+	if author.ID <= 0 {
+		return errors.New("Uncorrect ID")
+	}
+
+	author, err := s.repo.GetAuthorByID(author.ID)
+	if err != nil {
+		return err
+	}
+
+	if author == nil {
+		return errors.New("Author not found")
+	}
+
 	return s.repo.UpdateAuthor(author)
 }
 
 func (s *AuthorService) DeleteAuthor(id int) error {
+
+	if id <= 0 {
+		return errors.New("Uncorrect ID")
+	}
+
+	author, err := s.repo.GetAuthorByID(id)
+	if err != nil {
+		return err
+	}
+
+	if author == nil {
+		return errors.New("Author not found")
+	}
+
 	return s.repo.DeleteAuthor(id)
 }
